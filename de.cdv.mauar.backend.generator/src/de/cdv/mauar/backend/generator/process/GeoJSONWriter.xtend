@@ -11,11 +11,15 @@ interface GeoJSONWriter {
 
 	def static void writeFile(FeatureCollection newFeatureCollection, String fileName) {
 		val json = new ObjectMapper().writeValueAsString(newFeatureCollection);
+		writeFile(json, fileName)
+	}	
+	
+	def static void writeFile(String content, String fileName) {
 		val out = new File(fileName)
 		val fos = new FileOutputStream(out)
 		val osw = new OutputStreamWriter(fos, "UTF-8")
 		val fw = new BufferedWriter(osw)
-		fw.write(json)
+		fw.write(content)
 		fw.flush
 		fw.close
 		osw.close
