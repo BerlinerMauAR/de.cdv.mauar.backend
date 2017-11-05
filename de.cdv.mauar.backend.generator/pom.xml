@@ -70,6 +70,11 @@
 			<version>2.11.0</version>
 		</dependency>
 		<dependency>
+		    <groupId>com.github.oehme.xtend</groupId>
+		    <artifactId>xtend-contrib</artifactId>
+		    <version>1.0.0</version>
+		</dependency>		
+		<dependency>
 			<groupId>de.grundid.opendatalab</groupId>
 			<artifactId>geojson-jackson</artifactId>
 			<version>1.8</version>
