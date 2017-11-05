@@ -27,6 +27,6 @@ interface ProcessorDefinitions {
 	] 
 	
 	val ID_PROCESSOR = new Processor("INV_NR")
-	val POINT_PROCESSOR = new Processor("GEOKOORDINATEN_MOTIV", [String a | new Point(a.toLngLatAlt)])
+	val POINT_PROCESSOR = new Processor("GEOKOORDINATEN_MOTIV", [String a | new Point(a.replace(',', '.').toLngLatAlt)])
 	
 }

@@ -5,7 +5,7 @@ import org.geojson.LngLatAlt
 class Functions {
 
 	def static handleMultipleValues(String line) {
-		line.split("$$$").map[trim].filter[length>0]
+		line.split("\\$\\$\\$").map[trim].filter[length>0].toList
 	}
 
 	private static String COORD_STR_START = "POINT "
