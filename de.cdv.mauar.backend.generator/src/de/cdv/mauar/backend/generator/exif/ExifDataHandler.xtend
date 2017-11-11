@@ -4,60 +4,55 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.HashMap
+import java.util.Map
 import org.apache.commons.imaging.ImageReadException
 import org.apache.commons.imaging.ImageWriteException
 import org.apache.commons.imaging.Imaging
+import org.apache.commons.imaging.ImagingConstants
 import org.apache.commons.imaging.common.RationalNumber
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata
 import org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter
-import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants
-import org.apache.commons.imaging.formats.tiff.constants.GpsTagConstants
-import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants
-import org.apache.commons.imaging.formats.tiff.fieldtypes.FieldType
-import org.apache.commons.imaging.formats.tiff.taginfos.TagInfoAscii
-import org.apache.commons.imaging.formats.tiff.taginfos.TagInfoGpsText
+import org.apache.commons.imaging.formats.tiff.taginfos.TagInfo
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputField
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet
-import java.util.Map
-import java.util.HashMap
-import org.apache.commons.imaging.ImagingConstants
+
+import static org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants.*
+import static org.apache.commons.imaging.formats.tiff.constants.GpsTagConstants.*
+import static org.apache.commons.imaging.formats.tiff.constants.MicrosoftTagConstants.*
+import static org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants.*
 
 class ExifDataHandler {
 
-	static def void setExifData(File jpegImageFile, File dst, ImageDescription imgDesc) throws IOException, ImageReadException, ImageWriteException {
+	static def void setExifData(File jpegImageFile, File dst, ImageDescription it) 
+			throws IOException, ImageReadException, ImageWriteException {
 		editExif(jpegImageFile, dst, [outputSet |
-			if(imgDesc.coord !== null) {
-				outputSet.setGPSInDegrees(imgDesc.coord.longitude, imgDesc.coord.latitude)
+			if(coord !== null) {
+				outputSet.setGPSInDegrees(coord.longitude, coord.latitude)
 			}
-			jpegImageFile.addAsciiField(TiffTagConstants.TIFF_TAG_DOCUMENT_NAME, imgDesc.title, outputSet);
-			jpegImageFile.addAsciiField(TiffTagConstants.TIFF_TAG_ARTIST, imgDesc.photographer, outputSet); 			
-			jpegImageFile.addAsciiField(TiffTagConstants.TIFF_TAG_IMAGE_DESCRIPTION, imgDesc.imageDescription, outputSet);
-			jpegImageFile.addAsciiField(TiffTagConstants.TIFF_TAG_DATE_TIME, imgDesc.dateTime, outputSet);
-			jpegImageFile.addAsciiField(ExifTagConstants.EXIF_TAG_USER_COMMENT, imgDesc.comment, outputSet); 			
-			jpegImageFile.addAsciiField(TiffTagConstants.TIFF_TAG_COPYRIGHT, imgDesc.license, outputSet);			 			
+			jpegImageFile.addField(title, outputSet, EXIF_TAG_XPTITLE)
+			jpegImageFile.addField(photographer, outputSet, TIFF_TAG_ARTIST, EXIF_TAG_XPAUTHOR)
+			jpegImageFile.addField(imageDescription, outputSet, EXIF_TAG_XPSUBJECT)
+			jpegImageFile.addField(dateTime, outputSet, EXIF_TAG_DATE_TIME_ORIGINAL, TIFF_TAG_DATE_TIME)
+			jpegImageFile.addField(comment, outputSet, EXIF_TAG_XPCOMMENT, EXIF_TAG_USER_COMMENT)
+			jpegImageFile.addField(tags, outputSet, EXIF_TAG_XPKEYWORDS)
+			jpegImageFile.addField(license, outputSet, TIFF_TAG_COPYRIGHT)			 			
 		])
 	}
 
-	private def static void addAsciiField(File jpegImageFile, TagInfoAscii tagInfo, String content, TiffOutputSet outputSet) {
-		val existingField = outputSet.findField(tagInfo);
-		if(existingField === null) {
-			val bytes = tagInfo.encodeValue(FieldType.ASCII, content, outputSet.byteOrder); 
-			val field = new TiffOutputField(tagInfo, tagInfo.dataTypes.get(0), bytes.length, bytes); 
-			outputSet.getOrCreateRootDirectory().add(field)
-		} else {
-			System.err.println(tagInfo.name + " already exists for " + jpegImageFile.absolutePath)
-		}
+	private def static void addField(File jpegImageFile, String content, TiffOutputSet outputSet, TagInfo... tagInfos) {
+		tagInfos.forEach[it.addField(jpegImageFile, content, outputSet)]
 	}
-	
-	private def static void addAsciiField(File jpegImageFile, TagInfoGpsText tagInfo, String content, TiffOutputSet outputSet) {
-		val existingField = outputSet.findField(tagInfo);
-		if(existingField === null) {
-			val bytes = tagInfo.encodeValue(FieldType.ASCII, content, outputSet.byteOrder); 
-			val field = new TiffOutputField(tagInfo, tagInfo.dataTypes.get(0), bytes.length, bytes); 
-			outputSet.getOrCreateRootDirectory().add(field)
-		} else {
-			System.err.println(tagInfo.name + " already exists for " + jpegImageFile.absolutePath)
+
+	private def static void addField(TagInfo tagInfo, File jpegImageFile, String content, TiffOutputSet outputSet) {
+		val existingField = outputSet.findField(tagInfo)
+		if(existingField !== null) {
+			System.out.println(tagInfo.name + " already exists for " + jpegImageFile.absolutePath + ", removing it now.")
+			outputSet.removeField(tagInfo)
 		}
+		val bytes = tagInfo.encodeValue(tagInfo.dataTypes.get(0), content, outputSet.byteOrder); 
+		val field = new TiffOutputField(tagInfo, tagInfo.dataTypes.get(0), bytes.size, bytes); 
+		outputSet.getOrCreateRootDirectory().add(field)
 	}
 
 	static def void setExifGPSTag(File jpegImageFile, File dst, double longitude, double latitude) 
@@ -68,7 +63,7 @@ class ExifDataHandler {
 	static def void setExifAltitude(File jpegImageFile, File dst, double altitude) 
 			throws IOException, ImageReadException, ImageWriteException {
 		editExif(jpegImageFile, dst, [outputSet | outputSet.GPSDirectory.add(
-			GpsTagConstants.GPS_TAG_GPS_ALTITUDE, RationalNumber.valueOf(altitude)
+			GPS_TAG_GPS_ALTITUDE, RationalNumber.valueOf(altitude)
 		)])
 	}
 
@@ -76,7 +71,7 @@ class ExifDataHandler {
 	static def void setExifImageDirection(File jpegImageFile, File dst, double imageDirection) 
 			throws IOException, ImageReadException, ImageWriteException {
 		editExif(jpegImageFile, dst, [outputSet | outputSet.GPSDirectory.add(
-			GpsTagConstants.GPS_TAG_GPS_IMG_DIRECTION, RationalNumber.valueOf(imageDirection)
+			GPS_TAG_GPS_IMG_DIRECTION, RationalNumber.valueOf(imageDirection)
 		)])
 	}
 	
@@ -84,25 +79,40 @@ class ExifDataHandler {
 			throws IOException, ImageReadException, ImageWriteException {
 		val fos = new FileOutputStream(dst)
 		val os = new BufferedOutputStream(fos)
-		try {
+		val jpegMetadata = try {
 			val Map<String, Object> params = new HashMap
 			params.put(ImagingConstants.PARAM_KEY_READ_THUMBNAILS, Boolean.FALSE)
-			val jpegMetadata = Imaging.getMetadata(jpegImageFile, params) as JpegImageMetadata
-			val outputSet = jpegMetadata?.exif?.outputSet
-			if (outputSet !== null) {
-				operation.apply(outputSet)
-				new ExifRewriter().updateExifMetadataLossless(jpegImageFile, os, outputSet)
-			}
+			Imaging.getMetadata(jpegImageFile, params) as JpegImageMetadata
 		} catch (ImageReadException ire) {
             System.err.println(ire.message + " for " + jpegImageFile.absolutePath)
-            if(dst.exists) {
-            	dst.deleteOnExit
-            }
+            null
         } catch (IOException ioe) {
             System.err.println(ioe.message + " for " + jpegImageFile.absolutePath)
-            if(dst.exists) {
-            	dst.deleteOnExit
-            }
+            null
+        }
+		val outputSet = {
+			val set = jpegMetadata?.exif?.outputSet
+			if(set !== null) set else new TiffOutputSet()
+		}
+		try {
+			operation.apply(outputSet)
+			new ExifRewriter().updateExifMetadataLossless(jpegImageFile, os, outputSet)
+			// org.apache.commons.imaging.formats.jpeg.iptc.JpegIptcRewriter
+			// org.apache.commons.imaging.formats.jpeg.xmp.JpegXmpRewriter
+        } catch (IOException ioe) {
+            if(ioe.message.startsWith("Could not read block")) {
+	            System.out.println(ioe.message + " for " + dst.absolutePath + ", trying to update lossy")
+				try {
+					new ExifRewriter().updateExifMetadataLossy(jpegImageFile, os, outputSet)
+		        } catch (IOException ioe2) {
+		        	System.err.println(ioe.message + " for " + dst.absolutePath)
+					if(dst.exists) {
+		            	dst.deleteOnExit
+		            }
+		        }
+	        } else {
+	            System.err.println(ioe.message + " for " + dst.absolutePath)
+	        }
         } finally {
 			if (fos !== null) fos.close
 			if (os !== null) os.close

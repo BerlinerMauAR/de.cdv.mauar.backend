@@ -7,23 +7,34 @@ import static extension de.cdv.mauar.backend.generator.process.Functions.*
 interface ProcessorDefinitions {
 
 	val handleMultipleValuesFun = [String a | a.handleMultipleValues] 
+	val handleDateTimeStr = [String a | a.handleDateTimeStr] 
+	
+	val kurzTitelProc = new Processor("kurztitel", "KURZTITEL")
+	val titelProc = new Processor("titel", "TITEL")
+	val beschreibungMotivProc = new Processor("beschreibungMotiv", "BESCHREIBUNG_MOTIV")
+	val fotografProc = new Processor("fotograf", "FOTOGRAF", handleMultipleValuesFun)
+	val datierungKonkretProc = new Processor("datierungKonkret", "DATIERUNGKONKRET", handleDateTimeStr)
+	val schlagwortProc = new Processor("schlagwort", "SCHLAGWORT", handleMultipleValuesFun)
+	val ortzeitbeschreibungProc = new Processor("ortzeitbeschreibung", "ORTZEITBESCHREIBUNG")
+	val strassennameMotivProc = new Processor("strassennameMotiv", "STRASSENNAME_MOTIV")
+	val lizenzProc = new Processor("lizenz", "LIZENZ")
 	
 	val PROP_PROCESSORS = newArrayList => [
-		add(new Processor("kurztitel", "KURZTITEL"))
-		add(new Processor("titel", "TITEL"))
-		add(new Processor("fotograf", "FOTOGRAF", handleMultipleValuesFun))
+		add(kurzTitelProc)
+		add(titelProc)
+		add(fotografProc)
 		add(new Processor("datierungVon", "DATIERUNGVON"))
 		add(new Processor("datierungBis", "DATIERUNGBIS"))
-		add(new Processor("datierungKonkret", "DATIERUNGKONKRET"))
-		add(new Processor("ortzeitbeschreibung", "ORTZEITBESCHREIBUNG"))
-		add(new Processor("schlagwort", "SCHLAGWORT", handleMultipleValuesFun))
-		add(new Processor("beschreibungMotiv", "BESCHREIBUNG_MOTIV"))
-		add(new Processor("strassennameMotiv", "STRASSENNAME_MOTIV"))
+		add(datierungKonkretProc)
+		add(ortzeitbeschreibungProc)
+		add(schlagwortProc)
+		add(beschreibungMotivProc)
+		add(strassennameMotivProc)
 		add(new Processor("stadtbezirk", "STADTBEZIRK", handleMultipleValuesFun))
 		add(new Processor("url", "URL"))
 		add(new Processor("datengeber", "DATENGEBER"))
 		add(new Processor("isilDatengeber", "ISIL_DATENGEBER"))
-		add(new Processor("lizenz", "LIZENZ"))
+		add(lizenzProc)
 	] 
 	
 	val ID_PROCESSOR = new Processor("INV_NR")

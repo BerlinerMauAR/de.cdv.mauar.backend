@@ -8,7 +8,6 @@ import org.geojson.Point
 import static de.cdv.mauar.backend.generator.exif.ExifDataHandler.*
 import static de.cdv.mauar.backend.generator.process.CVSParser.*
 import de.cdv.mauar.backend.generator.exif.ImageDescription
-import de.cdv.mauar.backend.generator.process.Processor
 import java.util.List
 
 class ExifDataSetterMain implements ProcessorDefinitions {
@@ -22,13 +21,6 @@ class ExifDataSetterMain implements ProcessorDefinitions {
 		val valuesList = keysAndValues.value
 		val pathsIterator = Files.list(Paths.get(System.getProperty("user.dir") + "/res/photos")).iterator
 		
-		//val kurzTitelProc = new Processor("KURZTITEL")
-		val titelProc = new Processor("TITEL")
-		val beschreibungMotivProc = new Processor("BESCHREIBUNG_MOTIV")
-		val fotografProc = new Processor("FOTOGRAF", handleMultipleValuesFun)
-		val datierungKonkretProc = new Processor("DATIERUNGKONKRET")
-		val lizenzProc = new Processor("LIZENZ")
-		
 		while (pathsIterator.hasNext) {
 			val inputPath = pathsIterator.next
 			val inputFileName = inputPath.toFile.name
@@ -39,10 +31,11 @@ class ExifDataSetterMain implements ProcessorDefinitions {
 			val imgDesc = (ImageDescription.builder => [
 				coord = coordinates
 				title = String.valueOf(titelProc.apply(values, keys))
-				photographer = (fotografProc.apply(values, keys) as List<String>).join(", ")
+				photographer = (fotografProc.apply(values, keys) as List<String>).join(";")
 				imageDescription = String.valueOf(beschreibungMotivProc.apply(values, keys))
 				dateTime = String.valueOf(datierungKonkretProc.apply(values, keys))
-				comment = String.valueOf(beschreibungMotivProc.apply(values, keys))
+				comment = String.valueOf(strassennameMotivProc.apply(values, keys))
+				tags = (schlagwortProc.apply(values, keys) as List<String>).join(";")
 				license = String.valueOf(lizenzProc.apply(values, keys))
 			]).build
 			setExifData(inputPath.toFile, outputPath.toFile, imgDesc)

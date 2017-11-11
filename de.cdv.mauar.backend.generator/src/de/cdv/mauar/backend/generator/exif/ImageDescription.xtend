@@ -1,8 +1,8 @@
 package de.cdv.mauar.backend.generator.exif
 
+import de.oehme.xtend.contrib.Buildable
 import org.eclipse.xtend.lib.annotations.Data
 import org.geojson.LngLatAlt
-import de.oehme.xtend.contrib.Buildable
 
 @Data
 @Buildable
@@ -12,6 +12,7 @@ class ImageDescription {
 	private val String photographer
 	private val String imageDescription
 	private val String dateTime
+	private val String tags
 	private val String comment
 	private val String license
 }

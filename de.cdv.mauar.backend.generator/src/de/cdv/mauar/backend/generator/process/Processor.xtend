@@ -37,7 +37,7 @@ class Processor {
 	private def static getValueForKey(List<String> values, List<String> keys, String key) {
 		val index = keys.indexOf(key)
 		if (index >= 0) {
-			return values.get(index).trim
+			return values.get(index)?.trim
 		} else {
 			return "unknown"
 		}
