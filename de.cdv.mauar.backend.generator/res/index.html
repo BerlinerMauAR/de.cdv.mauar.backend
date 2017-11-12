@@ -5,6 +5,9 @@
 		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
 		<script type="text/javascript" src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.css" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.Default.css" />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/leaflet.markercluster.js"></script>
 		<style>
 			#map{ height: 100% }
 			.info { padding: 6px 8px; font: 14px/16px Arial, Helvetica, sans-serif; background: white; background: rgba(255,255,255,0.8); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; } .info h4 { margin: 0 0 5px; color: #777; }
@@ -33,23 +36,29 @@
 			).addTo(map);
 
 			var mauerLayer;
-			var initPhotoLayer = function() {
+			var initMauerLayer = function() {
 				mauerLayer = new L.GeoJSON.AJAX("FL_Grenzstreifen.geojson");
 				mauerLayer.addTo(map);
 			};    
-			initPhotoLayer();
+			initMauerLayer();
 
 			var vorlandLayer;
-			var initMauerLayer = function() {
+			var initVorlandLayer = function() {
 				vorlandLayer = new L.GeoJSON.AJAX("Vorderlandmauer.geojson");
 				vorlandLayer.addTo(map);
 			};    
-			initMauerLayer();
-			
+			initVorlandLayer();
+
 			var photoLayer;
 			var initPhotoLayer = function() {
 				photoLayer = new L.GeoJSON.AJAX("mauar_photos.geojson", {style: style});
 				photoLayer.addTo(map);
+				
+				//var markers = L.markerClusterGroup();
+				//photoLayer.on('data:loaded', function () {
+    			//	markers.addLayer(geojsonAjax);
+    			//	map.addLayer(markers);
+				//});
 			};    
 			initPhotoLayer();
 			
