@@ -76,8 +76,8 @@ out of of `res/coding-da-vinci-metadaten.csv`
  * You can see the Geo locations directly in [GitHub](https://github.com/BerlinerMauAR/de.cdv.mauar.backend/blob/master/de.cdv.mauar.backend.generator/res/mauar_photos.geojson)
  * You can use [geojson.io](http://geojson.io/) to display the geojson file on a map as well as see the contained
    properties in a table
- * You can use the geojson file as input for Leaflet to display it in your web application
+ * You can use the geojson file as input for [Leaflet.js](http://leafletjs.com/) to display it in your web application
 
 ## Map
 Open local res\index.html in your browser to see geojson files displayed on a map enabled with clustering.
-Additional logic will follow to allow filtering by properties (e.g. tags, year, etc.).
+Additional logic will follow to allow filtering by properties (e.g. tags, year, etc.). See current state [here](https://berlinermauar.github.io/de.cdv.mauar.backend/)
