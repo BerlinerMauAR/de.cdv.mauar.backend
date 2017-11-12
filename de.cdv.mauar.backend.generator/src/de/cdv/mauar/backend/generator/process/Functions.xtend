@@ -11,14 +11,15 @@ class Functions {
 		line.split("\\$\\$\\$").map[trim].filter[length>0].toList
 	}
 	
-	private static String DATE_STR = "dd.MM.YYYY"
-	private static String MONTH_STR = "YYYY.MM"
-	private static String YEAR_STR = "YYYY"
-	private static String EXIF_DATE_STR = "YYYY:MM:dd"
+	private static String DATE_REVERSE_STR = "yyyy.MM.dd"
+	private static String DATE_STR = "dd.MM.yyyy"
+	private static String MONTH_STR = "yyyy.MM"
+	private static String YEAR_STR = "yyyy"
+	private static String EXIF_DATE_STR = "yyyy:MM:dd"
 	
 	def static String handleDateTimeStr(String line) {
 		val dateStr = if(line.contains("-")) interpolateDate(line.split("-")) else line
-		val date = handleDateTimeStr(dateStr, 0, #[DATE_STR, MONTH_STR, YEAR_STR])
+		val date = handleDateTimeStr(dateStr, 0, #[DATE_REVERSE_STR, DATE_STR, MONTH_STR, YEAR_STR])
 		if(date !== null) {
 			new SimpleDateFormat(EXIF_DATE_STR).format(date)
 		}

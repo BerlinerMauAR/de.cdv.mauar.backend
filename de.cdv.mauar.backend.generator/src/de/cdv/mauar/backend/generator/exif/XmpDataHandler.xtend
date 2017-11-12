@@ -29,7 +29,7 @@ class XmpDataHandler {
 						val handler = new XmpXmlHandler()
 						saxParser.parse(new ByteArrayInputStream(oldXmp.bytes), handler);
 						val modifiedXmp = if(handler.oldOriginal === null) {
-							if(oldXmp.contains("xmlns:exif")) {
+							if(oldXmp.contains("xmlns:exif=")) {
 								oldXmp.
 									replace('''</exif:ExifVersion>''', 
 										'''</exif:ExifVersion><exif:DateTimeOriginal>«newDateStr»</exif:DateTimeOriginal>''')
@@ -42,7 +42,7 @@ class XmpDataHandler {
 									'''<exif:DateTimeOriginal>«newDateStr»</exif:DateTimeOriginal>''')
 						}
 						if(handler.oldCreate === null) {
-							if(modifiedXmp.contains("xmlns:xap")) {
+							if(modifiedXmp.contains("xmlns:xap=")) {
 								modifiedXmp.
 									replace('''<xap:CreatorTool>''', 
 										'''<xap:CreateDate>«newDateStr»</xap:CreateDate><xap:CreatorTool>''')

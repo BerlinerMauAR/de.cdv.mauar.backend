@@ -1,16 +1,21 @@
 package de.cdv.mauar.backend.generator.exif
 
+import de.cdv.mauar.backend.generator.process.ProcessorDefinitions
+import java.io.File
+import java.nio.file.Paths
+import java.util.List
+import org.geojson.LngLatAlt
+import org.geojson.Point
 import org.junit.Test
 
 import static de.cdv.mauar.backend.generator.exif.ExifDataHandler.*
-import java.io.File
-import org.geojson.LngLatAlt
+import static de.cdv.mauar.backend.generator.process.CVSParser.*
 
-class ExifTest {
+class ExifTest implements ProcessorDefinitions {
 	
 	@Test
 	def void testWhenExisting() {
-		val inputPath = new File(System.getProperty("user.dir") + "/res/photos/F-020455.jpeg")
+		val inputPath = new File(System.getProperty("user.dir") + "/res/photos/F-015005.jpeg")
 		val outputPath = new File(System.getProperty("user.dir") + "/res/processed/_deleteme.jpeg")
 		val imgDesc = (ImageDescription.builder => [
 				coord = new LngLatAlt(51.0, 12.0)
@@ -22,6 +27,35 @@ class ExifTest {
 				license = "Unlicence"
 			]).build
 		setExifData(inputPath, outputPath, imgDesc)	
+	}
+
+	@Test
+	def void testWhenUsingCSV() {
+		val input = System.getProperty("user.dir") + "/res/coding-da-vinci-metadaten.csv"
+		val outputDir = Paths.get(System.getProperty("user.dir") + "/res/processed")
+		outputDir.toFile.mkdirs
+		val keysAndValues = getKeysAndValues(input)
+		val keys = keysAndValues.key
+		val valuesList = keysAndValues.value
+		
+		val inputPath = new File(System.getProperty("user.dir") + "/res/photos/F-015005.jpeg")
+		val outputPath = new File(System.getProperty("user.dir") + "/res/processed/_deleteme.jpeg")
+
+		val inputFileName = inputPath.name
+		val values = valuesList.findFirst[v|inputFileName.equalsIgnoreCase(
+			String.valueOf(ID_PROCESSOR.apply(v, keys)) + ".jpeg")]
+		val coordinates = (POINT_PROCESSOR.apply(values, keys) as Point)?.coordinates
+		val imgDesc = (ImageDescription.builder => [
+			coord = coordinates
+			title = String.valueOf(titelProc.apply(values, keys))
+			photographer = (fotografProc.apply(values, keys) as List<String>).join(";")
+			imageDescription = String.valueOf(beschreibungMotivProc.apply(values, keys))
+			dateTime = String.valueOf(datierungKonkretProc.apply(values, keys))
+			comment = String.valueOf(strassennameMotivProc.apply(values, keys))
+			tags = (schlagwortProc.apply(values, keys) as List<String>).join(";")
+			license = String.valueOf(lizenzProc.apply(values, keys))
+		]).build
+		setExifData(inputPath, outputPath, imgDesc)
 	}
 	
 	@Test
