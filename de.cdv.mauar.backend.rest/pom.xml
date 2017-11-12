@@ -19,6 +19,16 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<version>1.5.5.RELEASE</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.skyscreamer</groupId>
+					<artifactId>jsonassert</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.jayway.jsonpath</groupId>
+					<artifactId>json-path</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
