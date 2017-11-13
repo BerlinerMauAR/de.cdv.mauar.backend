@@ -1,6 +1,5 @@
 package de.cdv.mauar.backend.generator
 
-import de.cdv.mauar.backend.generator.process.Processor
 import de.cdv.mauar.backend.generator.process.ProcessorDefinitions
 import org.geojson.Point
 
@@ -15,21 +14,12 @@ class PhotoLocationJSONGenerator implements ProcessorDefinitions {
 		val keysAndValues = getKeysAndValues(input)
 		val keys = keysAndValues.key
 		val valuesList = keysAndValues.value
-		val urlProcessor = new Processor("URL")
 		val json = '''
-		{
-			«FOR values : valuesList SEPARATOR ","»
-				«val coords = (POINT_PROCESSOR.apply(values, keys) as Point).coordinates»
-				"«ID_PROCESSOR.apply(values, keys) as String»": {
-					"url": "«urlProcessor.apply(values, keys) as String»"«
-					IF coords !== null»,
-					"coord": [«coords.latitude»,«coords.longitude»]
-					«ELSE»
-					
-					«ENDIF»
-				}
-			«ENDFOR»
-		}
+			{
+				«FOR values : valuesList.map[Pair.of(it, (POINT_PROCESSOR.apply(it, keys) as Point).coordinates)].filter[it.value !== null] SEPARATOR ","»
+					"«ID_PROCESSOR.apply(values.key, keys) as String»": [«values.value.latitude»,«values.value.longitude»]
+				«ENDFOR»
+			}
 		'''
 		json.toString.writeFile("res/photolocations.json")
 	}

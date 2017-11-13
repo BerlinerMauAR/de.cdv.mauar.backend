@@ -1,0 +1,17 @@
+{
+  "name": "mauar-geofire-client",
+  "version": "0.0.1",
+  "description": "Store and query location data to realtime database",
+  "scripts": {
+    "store": "node store.js",
+    "query": "node query.js"
+  },
+  "author": "mauAR team",
+  "license": "MIT",
+  "devDependencies": {
+    "firebase": "^4.6.2",
+    "firebase-admin": "^5.5.0",
+    "geofire": "^4.1.2",
+    "homedir": "^0.6.0"
+  }
+}

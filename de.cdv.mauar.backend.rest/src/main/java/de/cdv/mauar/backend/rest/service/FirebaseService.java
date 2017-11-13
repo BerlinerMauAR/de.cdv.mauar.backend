@@ -3,7 +3,6 @@ package de.cdv.mauar.backend.rest.service;
 import java.io.FileInputStream;
 
 import com.firebase.geofire.GeoFire;
-import com.firebase.geofire.GeoFire.CompletionListener;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
@@ -24,25 +23,25 @@ public class FirebaseService {
 
 		FirebaseOptions options = new FirebaseOptions.Builder()
 		  .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-		  .setDatabaseUrl("https://mauar-cc91a.firebaseio.com")
-		  //.setStorageBucket("photos")
+		  .setDatabaseUrl("https://mauar-cc91a.firebaseio.com/")
+		  .setStorageBucket("mauar-cc91a.appspot.com")
 		  .build();
 
 		FirebaseApp photosApp = FirebaseApp.initializeApp(options, "photos");
 		
-		DatabaseReference ref = FirebaseDatabase.getInstance(photosApp).getReference();
+		DatabaseReference ref = FirebaseDatabase.getInstance(photosApp).getReference("geofire");
 		GeoFire geoFire = new GeoFire(ref);
 		
-		geoFire.setLocation("F-015005", new GeoLocation(37.7853889, -122.4056973), new CompletionListener() {
-		    @Override
-		    public void onComplete(String key, DatabaseError error) {
-		        if (error != null) {
-		            System.err.println("There was an error saving the location to GeoFire: " + error);
-		        } else {
-		            System.out.println("Location saved on server successfully!");
-		        }
-		    }
-		});
+//		geoFire.setLocation("F-015005", new GeoLocation(37.7853889, -122.4056973), new CompletionListener() {
+//		    @Override
+//		    public void onComplete(String key, DatabaseError error) {
+//		        if (error != null) {
+//		            System.err.println("There was an error saving the location to GeoFire: " + error);
+//		        } else {
+//		            System.out.println("Location saved on server successfully!");
+//		        }
+//		    }
+//		});
 		
 		geoFire.getLocation("F-015005", new LocationCallback() {
 		    @Override
@@ -60,7 +59,7 @@ public class FirebaseService {
 		    }
 		});		
 		
-		GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(37.7832, -122.4056), 0.6);
+		GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(52.50818, 13.39911), 1.5);
 		
 		geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
 		    @Override
@@ -88,8 +87,6 @@ public class FirebaseService {
 		        System.err.println("There was an error with this query: " + error);
 		    }
 		});		
-		
-		geoQuery.setCenter(new GeoLocation(37.7833, -122.4056));
 		
 //		DatabaseReference databaseReference = FirebaseDatabase.getInstance(photosApp).getReference();
 //		
