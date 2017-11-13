@@ -1,0 +1,34 @@
+{
+  "rules": {
+		"geofire": {
+      // Allow anyone to read the GeoFire index
+      ".read": true,
+      ".write": "auth != null",
+
+      // Index each location's geohash for faster querying
+      ".indexOn": ["g"],
+
+      // Schema validation
+      "$key": {
+        // Allow any authentication user to add, update, or remove keys in the GeoFire index
+        ".write": "auth != null",
+
+        // Key validation
+        ".validate": "newData.hasChildren(['g', 'l'])",
+
+        // Location coordinates validation
+        "l": {
+          "0" : {
+            ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+          },
+          "1" : {
+            ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+		}
+  }
+}
