@@ -28,7 +28,9 @@ class MauerGeoJSONGeneratorMain implements ProcessorDefinitions {
 				PROP_PROCESSORS.forEach(proc|proc.apply(properties, values, keys))
 				geometry = POINT_PROCESSOR.apply(values, keys) as Point
 			]
-			newFeatureCollection.add(newFeature)
+			if((newFeature.geometry as Point).coordinates !== null) {
+				newFeatureCollection.add(newFeature)
+			}
 		}
 		newFeatureCollection
 	}

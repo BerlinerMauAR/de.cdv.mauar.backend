@@ -5,6 +5,7 @@
 		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
 		<script type="text/javascript" src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.css" />
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.Default.css" />
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/leaflet.markercluster.js"></script>
@@ -15,6 +16,7 @@
 		</style>
 	</head>
 	<body>
+		<div id="progress"><div id="progressbar"></div></div>
 		<div id="map" />
 		<script>
 
@@ -48,20 +50,62 @@
 				vorlandLayer.addTo(map);
 			};    
 			initVorlandLayer();
-
-			var photoLayer;
-			var initPhotoLayer = function() {
-				photoLayer = new L.GeoJSON.AJAX("mauar_photos.geojson", {style: style});
-				photoLayer.addTo(map);
-				
-				//var markers = L.markerClusterGroup();
-				//photoLayer.on('data:loaded', function () {
-    			//	markers.addLayer(geojsonAjax);
-    			//	map.addLayer(markers);
-				//});
-			};    
-			initPhotoLayer();
 			
+			var progress = document.getElementById('progress');
+			var progressBar = document.getElementById('progressbar');
+
+			function updateProgressBar(processed, total, elapsed, layersArray) {
+				if (elapsed > 1000) {
+					progress.style.display = 'block';
+					progressBar.style.width = Math.round(processed / total * 100) + '%';
+				}
+				if (processed === total) {
+					progress.style.display = 'none';
+				}
+			}
+
+			$.ajaxSetup({
+			    scriptCharset: "utf-8",
+			    contentType: "application/json; charset=utf-8"
+			});
+			$.getJSON("mauar_photos.geojson", function(data){
+			    var photoLayer = L.geoJson(data, {style: style});
+				var markers = L.markerClusterGroup({ chunkedLoading: true, chunkProgress: updateProgressBar, 
+					maxClusterRadius: function (zoom) {
+        				return 25;
+    				} });
+			    markers.addLayer(photoLayer);
+			    map.addLayer(markers);
+
+				var layerPopup;
+				var registerLayerMouseOver = function() {
+					photoLayer.on('mouseover', function(e) {
+						var coordinates = e.layer.feature.geometry.coordinates;
+						var swapped_coordinates = [coordinates[1], coordinates[0]];
+						if (map) {
+							var props = e.layer.feature.properties
+							layerPopup = L.popup()
+								.setLatLng(swapped_coordinates)
+								.setContent(props.kurztitel)
+								.openOn(map);
+						}
+						highlightFeature(e);
+					});
+				};
+				registerLayerMouseOver();
+				var registerLayerMouseOut = function() {
+					photoLayer.on('mouseout', function (e) {
+						if (layerPopup && map) {
+							map.closePopup(layerPopup);
+							layerPopup = null;
+							resetHighlight(e);
+						}
+					});
+				};
+				registerLayerMouseOut();		
+
+			  });			
+						
 			// control that shows state info on hover
 			var info = L.control();
 		
@@ -100,32 +144,6 @@
 				info.update();
 			}
 			
-			var layerPopup;
-			var registerLayerMouseOver = function() {
-				photoLayer.on('mouseover', function(e) {
-					var coordinates = e.layer.feature.geometry.coordinates;
-					var swapped_coordinates = [coordinates[1], coordinates[0]];
-					if (map) {
-						var props = e.layer.feature.properties
-						layerPopup = L.popup()
-							.setLatLng(swapped_coordinates)
-							.setContent(props.kurztitel)
-							.openOn(map);
-					}
-					highlightFeature(e);
-				});
-			};
-			registerLayerMouseOver();
-			var registerLayerMouseOut = function() {
-				photoLayer.on('mouseout', function (e) {
-					if (layerPopup && map) {
-						map.closePopup(layerPopup);
-						layerPopup = null;
-						resetHighlight(e);
-					}
-				});
-			};
-			registerLayerMouseOut();		
 		</script>
 	</body>
 </html>
