@@ -5,6 +5,9 @@
 		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.css" />
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.Default.css" />
+		
+		<link rel="stylesheet" href="https://cdn.rawgit.com/socib/Leaflet.TimeDimension/master/dist/leaflet.timedimension.control.min.css" />
+		
 		<style>
 			#map{ height: 100% }
 			.info { padding: 6px 8px; font: 14px/16px Arial, Helvetica, sans-serif; background: white; background: rgba(255,255,255,0.8); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; } .info h4 { margin: 0 0 5px; color: #777; }
@@ -19,6 +22,11 @@
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/leaflet.markercluster.js"></script>
+		<script src="http://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+	    <script src="http://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
+        <script type="text/javascript" src="https://cdn.rawgit.com/nezasa/iso8601-js-period/master/iso8601.min.js"></script>
+        <script type="text/javascript" src="https://cdn.rawgit.com/socib/Leaflet.TimeDimension/master/dist/leaflet.timedimension.min.js"></script>
+		
 		<script>
 
 			function style(feature) {
@@ -31,7 +39,14 @@
 				};
 			}
 		
-			var map = L.map('map').setView([52.520008, 13.404954], 9);
+			var map = L.map('map', {
+				timeDimension: true,
+			    timeDimensionOptions: {
+			        timeInterval: "1961/1991",
+			        period: "P1Y"
+			    },
+			    timeDimensionControl: true
+			}).setView([52.520008, 13.404954], 9);
 			L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 				{
 					attribution: 'Map data &#64; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors</a>'
@@ -71,12 +86,8 @@
 			});
 			$.getJSON("mauar_photos.geojson", function(data){
 			    var photoLayer = L.geoJson(data, {style: style});
-				var markers = L.markerClusterGroup({ chunkedLoading: true, chunkProgress: updateProgressBar, 
-					maxClusterRadius: function (zoom) {
-        				return 25;
-    				} });
-			    markers.addLayer(photoLayer);
-			    map.addLayer(markers);
+			    
+			    L.timeDimension.layer.geoJson(photoLayer).addTo(map);
 
 				var layerPopup;
 				var registerLayerMouseOver = function() {
