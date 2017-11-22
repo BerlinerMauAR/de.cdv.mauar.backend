@@ -3,11 +3,6 @@
 		<title>MauAR Karte</title>
 		<meta charset="UTF-8"/>
 		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
-		<script type="text/javascript" src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.css" />
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.Default.css" />
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/leaflet.markercluster.js"></script>
 		<style>
 			#map{ height: 100% }
 			.info { padding: 6px 8px; font: 14px/16px Arial, Helvetica, sans-serif; background: white; background: rgba(255,255,255,0.8); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; } .info h4 { margin: 0 0 5px; color: #777; }
@@ -15,8 +10,49 @@
 		</style>
 	</head>
 	<body>
+		<div id="progress"><div id="progressbar"></div></div>
 		<div id="map" />
+
+		<script type="text/javascript" src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/4.6.2/firebase.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/4.6.2/firebase-app.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/4.6.2/firebase-auth.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/4.6.2/firebase-database.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/4.6.2/firebase-firestore.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/4.6.2/firebase-messaging.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/4.6.2/firebase-storage.js"></script>
+		<script src="https://cdn.firebase.com/libs/geofire/4.1.2/geofire.min.js"></script>
 		<script>
+			var config = {
+    			apiKey: "AIzaSyC6OtnH-nRuUgOA_9vGGlixYjEw3PXVry4",
+    			authDomain: "mauar-cc91a.firebaseapp.com",
+    			databaseURL: "https://mauar-cc91a.firebaseio.com",
+    			projectId: "mauar-cc91a",
+    			storageBucket: "mauar-cc91a.appspot.com",
+    			messagingSenderId: "914208187075"
+  			};
+  			firebase.initializeApp(config);
+
+			var storage = firebase.storage();
+			var database = firebase.database();
+
+			var geoRef = firebase.database().ref('geofire');
+			var geoFire = new GeoFire(geoRef);
+			
+			geoFire.get("F-015005").then(function(location) {
+			  if (location === null) {
+			    console.log("Provided key is not in GeoFire");
+			  }
+			  else {
+			    console.log("Provided key has a location of " + location);
+			  }
+			}, function(error) {
+			  console.log("Error: " + error);
+			});
+			
+			var photoStorage = storage.ref().child("photos");
 
 			function style(feature) {
 				return {
@@ -48,20 +84,46 @@
 				vorlandLayer.addTo(map);
 			};    
 			initVorlandLayer();
-
-			var photoLayer;
-			var initPhotoLayer = function() {
-				photoLayer = new L.GeoJSON.AJAX("mauar_photos.geojson", {style: style});
-				photoLayer.addTo(map);
-				
-				//var markers = L.markerClusterGroup();
-				//photoLayer.on('data:loaded', function () {
-    			//	markers.addLayer(geojsonAjax);
-    			//	map.addLayer(markers);
-				//});
-			};    
-			initPhotoLayer();
 			
+			var progress = document.getElementById('progress');
+			var progressBar = document.getElementById('progressbar');
+
+			function updateProgressBar(processed, total, elapsed, layersArray) {
+				if (elapsed > 1000) {
+					progress.style.display = 'block';
+					progressBar.style.width = Math.round(processed / total * 100) + '%';
+				}
+				if (processed === total) {
+					progress.style.display = 'none';
+				}
+			}
+
+			$.ajaxSetup({
+			    scriptCharset: "utf-8",
+			    contentType: "application/json; charset=utf-8"
+			});
+			$.getJSON("mauar_photos.geojson", function(data){
+			    var photoLayer = L.geoJson(data, {style: style});
+			    map.addLayer(photoLayer);
+
+				var layerPopup;
+				var registerLayerMouseOver = function() {
+					photoLayer.on('mouseover', function(e) {
+						var coordinates = e.layer.feature.geometry.coordinates;
+						var swapped_coordinates = [coordinates[1], coordinates[0]];
+						highlightFeature(e);
+					});
+				};
+				registerLayerMouseOver();
+				var registerLayerMouseOut = function() {
+					photoLayer.on('mouseout', function (e) {
+						resetHighlight(e);
+					});
+				};
+				registerLayerMouseOut();		
+
+			  });			
+						
 			// control that shows state info on hover
 			var info = L.control();
 		
@@ -71,7 +133,7 @@
 				return this._div;
 			};
 		
-			info.update = function (props) {
+			info.update = function (id, props) {
 				var htmlInner = '<div style="width: 300px;"><h4>Fotos</h4>'; 
 				if(props) {
 					htmlInner += '<h4>' + props.kurztitel + '</h4>'; 
@@ -81,8 +143,20 @@
 				if(props) {
 					htmlInner += props["ortzeitbeschreibung"];
 				}
+				htmlInner += '<br /><br /><div id="mauerPhotoContainer"/>'
 				htmlInner += '</div>';
 				this._div.innerHTML = htmlInner;
+				if(id) {
+					photoStorage.child(id + '.jpeg').getDownloadURL().then(function(url) {
+	  					if($("#mauerPhotoContainer > img").length == 0) {
+		  					$("#mauerPhotoContainer").append("<img src='" + url + "' style='width:295px' />")
+	  					}
+					}).catch(function(error) {
+	  					console.error(error);
+					});
+				} else {
+  					$("#mauerPhotoContainer img:last-child").remove()
+				}
 			};
 		
 			info.addTo(map);
@@ -93,39 +167,12 @@
 					layer.bringToFront();
 				}
 		
-				info.update(e.layer.feature.properties);
+				info.update(e.layer.feature.id, e.layer.feature.properties);
 			}
 			
 			function resetHighlight(e) {
 				info.update();
-			}
-			
-			var layerPopup;
-			var registerLayerMouseOver = function() {
-				photoLayer.on('mouseover', function(e) {
-					var coordinates = e.layer.feature.geometry.coordinates;
-					var swapped_coordinates = [coordinates[1], coordinates[0]];
-					if (map) {
-						var props = e.layer.feature.properties
-						layerPopup = L.popup()
-							.setLatLng(swapped_coordinates)
-							.setContent(props.kurztitel)
-							.openOn(map);
-					}
-					highlightFeature(e);
-				});
-			};
-			registerLayerMouseOver();
-			var registerLayerMouseOut = function() {
-				photoLayer.on('mouseout', function (e) {
-					if (layerPopup && map) {
-						map.closePopup(layerPopup);
-						layerPopup = null;
-						resetHighlight(e);
-					}
-				});
-			};
-			registerLayerMouseOut();		
+			}			
 		</script>
 	</body>
 </html>
