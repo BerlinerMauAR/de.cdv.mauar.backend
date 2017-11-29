@@ -18,7 +18,7 @@ All models with the A9 processor and up:
 - all iPad Pro
 
 # Teilnehmer
-- Jörg Reichert
-- Maimi von Mirbach
-- Gottfried von Recum
-- [Peter Kolski](https://github.com/BildPeter)
+- [Jörg Reichert](https://github.com/orgs/BerlinerMauAR/people/joergreichert) - Backend Entwicklung
+- Maimi von Mirbach - Design UI / UX
+- [Gottfried von Recum](https://github.com/orgs/BerlinerMauAR/people/GvRecum) - Entwicklung
+- [Peter Kolski](https://github.com/BildPeter) - App Entwicklung
