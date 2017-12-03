@@ -10,6 +10,7 @@ import org.junit.Test
 
 import static de.cdv.mauar.backend.generator.exif.ExifDataHandler.*
 import static de.cdv.mauar.backend.generator.process.CVSParser.*
+import static org.junit.Assert.assertEquals
 
 class ExifTest implements ProcessorDefinitions {
 	
@@ -57,7 +58,23 @@ class ExifTest implements ProcessorDefinitions {
 		]).build
 		setExifData(inputPath, outputPath, imgDesc)
 	}
-	
+
+	@Test
+	def void testLicense() {
+		val input = System.getProperty("user.dir") + "/res/coding-da-vinci-metadaten.csv"
+		val keysAndValues = getKeysAndValues(input)
+		val keys = keysAndValues.key
+		val valuesList = keysAndValues.value
+		
+		val inputPath = new File(System.getProperty("user.dir") + "/res/photos/F-015005.jpeg")
+
+		val inputFileName = inputPath.name
+		val values = valuesList.findFirst[v|inputFileName.equalsIgnoreCase(
+			String.valueOf(ID_PROCESSOR.apply(v, keys)) + ".jpeg")]
+		val licenses = lizenzProc.apply(values, keys)
+		assertEquals("https://creativecommons.org/licenses/by-sa/4.0/", licenses)	
+	}
+		
 	@Test
 	def void testWhenNotExisting() {
 		val inputPath = new File(System.getProperty("user.dir") + "/res/photos/F-020001.jpeg")

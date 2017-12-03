@@ -10,11 +10,12 @@ class CVSParser {
 		val scanner = new Scanner(new File(inputFile), "UTF-8")
 		scanner.useDelimiter("\n")
 		val headline = if(scanner.hasNext) scanner.next else ""
-		val keys = headline.split(';')
+		val keys = headline.split(';').map[replaceAll('\r', "")]
 		val valuesList = newArrayList
 		while (scanner.hasNext) {
 			val newLine = processSubColums(scanner.next) 
-			val valuesProcessed = newLine.split(";").map[replace("\"", "").trim]
+			val valuesProcessed = newLine.split(";")
+				.map[replace("\"", "").replaceAll('\r', "").trim]
 			valuesList.add(valuesProcessed)
 		}
 		scanner.close
